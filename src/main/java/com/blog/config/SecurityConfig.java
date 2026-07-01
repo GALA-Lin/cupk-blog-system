@@ -6,6 +6,7 @@ import com.blog.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -103,6 +104,9 @@ public class SecurityConfig {
                                 "/druid/**",
                                 "/posts"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/posts", "/posts/**").permitAll()
+                        .requestMatchers("/comments", "/comments/**").permitAll()
+                        .requestMatchers("/likes/comment/**", "/likes/comments/batch-check").permitAll()
 
                         // All other requests require authentication
                         .anyRequest().authenticated()
