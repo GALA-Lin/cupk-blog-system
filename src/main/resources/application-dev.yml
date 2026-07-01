@@ -149,6 +149,7 @@ blog:
 
   # Comment
   comment:
+    enabled: false # Temporarily disable comment APIs for government portal migration
     enable-review: false # Require admin approval
     max-length: 500
     enable-nested: true # Allow nested replies
