@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,7 @@ import java.util.List;
 @RequestMapping("/comments")
 @RequiredArgsConstructor
 @Validated
+@ConditionalOnProperty(prefix = "blog.comment", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class CommentController {
 
     private final ICommentService commentService;
