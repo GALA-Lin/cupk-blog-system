@@ -9,6 +9,7 @@ import com.blog.util.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,9 @@ import java.util.Map;
 public class LikeController {
 
     private final LikeService likeService;
+
+    @Value("${blog.comment.enabled:true}")
+    private boolean commentEnabled;
 
     // ========== 文章点赞 ==========
 
@@ -135,45 +139,70 @@ public class LikeController {
 
     @Operation(summary = "点赞评论")
     @PostMapping("/comment/{commentId}")
-    @PreAuthorize("isAuthenticated()")
     public Result<Boolean> likeComment(@PathVariable Long commentId) {
-        Long userId = SecurityUtil.getCurrentUserId();
+        if (!commentEnabled) {
+            return commentDisabledResult();
+        }
+        Long userId = getCurrentUserIdOrUnauthorized();
+        if (userId == null) {
+            return unauthorizedResult();
+        }
         Boolean result = likeService.likeComment(commentId, userId);
         return Result.success(result ? "点赞成功" : "已经点赞过了", result);
     }
 
     @Operation(summary = "取消点赞评论")
     @DeleteMapping("/comment/{commentId}")
-    @PreAuthorize("isAuthenticated()")
     public Result<Boolean> unlikeComment(@PathVariable Long commentId) {
-        Long userId = SecurityUtil.getCurrentUserId();
+        if (!commentEnabled) {
+            return commentDisabledResult();
+        }
+        Long userId = getCurrentUserIdOrUnauthorized();
+        if (userId == null) {
+            return unauthorizedResult();
+        }
         Boolean result = likeService.unlikeComment(commentId, userId);
         return Result.success(result ? "取消点赞成功" : "您还没有点赞过", result);
     }
 
     @Operation(summary = "切换评论点赞状态")
     @PutMapping("/comment/{commentId}/toggle")
-    @PreAuthorize("isAuthenticated()")
     public Result<Boolean> toggleCommentLike(@PathVariable Long commentId) {
-        Long userId = SecurityUtil.getCurrentUserId();
+        if (!commentEnabled) {
+            return commentDisabledResult();
+        }
+        Long userId = getCurrentUserIdOrUnauthorized();
+        if (userId == null) {
+            return unauthorizedResult();
+        }
         Boolean isLiked = likeService.toggleCommentLike(commentId, userId);
         return Result.success(isLiked ? "点赞成功" : "取消点赞成功", isLiked);
     }
 
     @Operation(summary = "检查是否已点赞评论")
     @GetMapping("/comment/{commentId}/check")
-    @PreAuthorize("isAuthenticated()")
     public Result<Boolean> checkCommentLike(@PathVariable Long commentId) {
-        Long userId = SecurityUtil.getCurrentUserId();
+        if (!commentEnabled) {
+            return commentDisabledResult();
+        }
+        Long userId = getCurrentUserIdOrUnauthorized();
+        if (userId == null) {
+            return unauthorizedResult();
+        }
         Boolean isLiked = likeService.isCommentLiked(commentId, userId);
         return Result.success(isLiked);
     }
 
     @Operation(summary = "批量检查评论点赞状态")
     @PostMapping("/comments/batch-check")
-    @PreAuthorize("isAuthenticated()")
     public Result<Map<Long, Boolean>> batchCheckCommentLikes(@RequestBody List<Long> commentIds) {
-        Long userId = SecurityUtil.getCurrentUserId();
+        if (!commentEnabled) {
+            return commentDisabledResult();
+        }
+        Long userId = getCurrentUserIdOrUnauthorized();
+        if (userId == null) {
+            return unauthorizedResult();
+        }
         Map<Long, Boolean> result = likeService.batchCheckCommentLikes(commentIds, userId);
         return Result.success(result);
     }
@@ -184,9 +213,23 @@ public class LikeController {
             @PathVariable Long commentId,
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "20") Integer pageSize) {
+        if (!commentEnabled) {
+            return commentDisabledResult();
+        }
         PageResult<UserSimpleVO> users = likeService.getCommentLikeUsers(commentId, pageNum, pageSize);
         return Result.success(users);
     }
 
+    private Long getCurrentUserIdOrUnauthorized() {
+        return SecurityUtil.getCurrentUserId();
+    }
+
+    private <T> Result<T> commentDisabledResult() {
+        return Result.error(503, "评论功能暂未开放");
+    }
+
+    private <T> Result<T> unauthorizedResult() {
+        return Result.error(401, "未授权");
+    }
 
 }

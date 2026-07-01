@@ -24,8 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 /**
  * @Author: GALA_Lin
@@ -69,16 +70,14 @@ public class PostServiceImpl implements PostService {
         if (dto.getStatus() == 1){
             post.setPublishedAt(LocalDateTime.now());
         }
-        // 处理分类与标签
-        if (dto.getCategoryIds() != null && !dto.getCategoryIds().isEmpty()) {
-            saveCategoriesForPost(post.getId(), dto.getCategoryIds());
-        }
-
-        if (dto.getTagIds() != null && !dto.getTagIds().isEmpty()) {
-            saveTagsForPost(post.getId(), dto.getTagIds());
-        }
-
         postMapper.insert(post);
+
+        // 处理分类与标签
+        List<Long> categoryIds = distinctIds(dto.getCategoryIds());
+        replaceCategoriesForPost(post.getId(), categoryIds);
+        replaceTagsForPost(post.getId(), dto.getTagIds());
+        refreshCategoryPostCounts(categoryIds);
+
         return post.getId();
     }
     private String generateSlug(String title) {
@@ -105,7 +104,11 @@ public class PostServiceImpl implements PostService {
         return baseSlug + "-" + timestamp;
     }
     private void saveCategoriesForPost(Long postId, List<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return;
+        }
         for (Long categoryId : categoryIds) {
+            validateCategory(categoryId);
             PostCategory postCategory = new PostCategory();
             postCategory.setPostId(postId);
             postCategory.setCategoryId(categoryId);
@@ -115,13 +118,84 @@ public class PostServiceImpl implements PostService {
 
     // 辅助方法：保存文章标签关联
     private void saveTagsForPost(Long postId, List<Long> tagIds) {
+        if (tagIds == null || tagIds.isEmpty()) {
+            return;
+        }
         for (Long tagId : tagIds) {
+            validateTag(tagId);
             PostTag postTag = new PostTag();
             postTag.setPostId(postId);
             postTag.setTagId(tagId);
             postTagMapper.insert(postTag);
         }
     }
+
+    private void replaceCategoriesForPost(Long postId, List<Long> categoryIds) {
+        postCategoryMapper.delete(new LambdaQueryWrapper<PostCategory>()
+                .eq(PostCategory::getPostId, postId));
+        saveCategoriesForPost(postId, distinctIds(categoryIds));
+    }
+
+    private void replaceTagsForPost(Long postId, List<Long> tagIds) {
+        postTagMapper.delete(new LambdaQueryWrapper<PostTag>()
+                .eq(PostTag::getPostId, postId));
+        saveTagsForPost(postId, distinctIds(tagIds));
+    }
+
+    private List<Long> distinctIds(List<Long> ids) {
+        if (ids == null) {
+            return List.of();
+        }
+        return ids.stream()
+                .filter(id -> id != null)
+                .distinct()
+                .toList();
+    }
+
+    private void validateCategory(Long categoryId) {
+        Category category = categoryMapper.selectById(categoryId);
+        if (category == null || category.getStatus() == null || category.getStatus() != 1) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "分类不存在或已禁用");
+        }
+    }
+
+    private void validateTag(Long tagId) {
+        Tag tag = tagMapper.selectById(tagId);
+        if (tag == null) {
+            throw new BusinessException(ResultCode.PARAM_ERROR, "标签不存在");
+        }
+    }
+
+    private List<Long> loadCategoryIdsForPost(Long postId) {
+        return postCategoryMapper.selectList(new LambdaQueryWrapper<PostCategory>()
+                        .eq(PostCategory::getPostId, postId))
+                .stream()
+                .map(PostCategory::getCategoryId)
+                .filter(id -> id != null)
+                .distinct()
+                .toList();
+    }
+
+    private List<Long> mergeCategoryIds(List<Long> oldCategoryIds, List<Long> newCategoryIds) {
+        Set<Long> ids = new LinkedHashSet<>();
+        if (oldCategoryIds != null) {
+            ids.addAll(oldCategoryIds);
+        }
+        if (newCategoryIds != null) {
+            ids.addAll(newCategoryIds);
+        }
+        return new ArrayList<>(ids);
+    }
+
+    private void refreshCategoryPostCounts(List<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return;
+        }
+        for (Long categoryId : categoryIds) {
+            categoryMapper.refreshPostCount(categoryId);
+        }
+    }
+
     /**
      * 获取文章详情
      * @param id 文章ID
@@ -131,6 +205,9 @@ public class PostServiceImpl implements PostService {
     public PostDetailVO getPostById(Long id) {
         Post post = postMapper.selectById(id);
         if (post == null) {
+            throw new BusinessException(ResultCode.POST_NOT_FOUND);
+        }
+        if (!Integer.valueOf(1).equals(post.getStatus()) && !canAccessUnpublishedPost(post)) {
             throw new BusinessException(ResultCode.POST_NOT_FOUND);
         }
         // 加载文章信息
@@ -201,8 +278,9 @@ public class PostServiceImpl implements PostService {
     public PageResult<PostListVO> getPostList(Integer page, Integer size, Integer status) {
         // 创建查询条件
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<>();
-        // 如果有状态参数，则筛选状态
-        if (status != null) {
+        if (!canManagePosts()) {
+            wrapper.eq(Post::getStatus, 1);
+        } else if (status != null) {
             wrapper.eq(Post::getStatus, status);
         }
         // 按照发布时间倒序排序
@@ -242,6 +320,10 @@ public class PostServiceImpl implements PostService {
         if (post == null) {
             throw new BusinessException(ResultCode.POST_NOT_FOUND);
         }
+        List<Long> oldCategoryIds = loadCategoryIdsForPost(post.getId());
+        List<Long> newCategoryIds = dto.getCategoryIds() != null
+                ? distinctIds(dto.getCategoryIds())
+                : oldCategoryIds;
         // 校验用户是否有权限修改
         Long currentUserId = SecurityUtil.getCurrentUserId();
         if (!post.getUserId().equals(currentUserId) &&
@@ -263,9 +345,20 @@ public class PostServiceImpl implements PostService {
             post.setCoverImage(dto.getCoverImage());
         }
         if (dto.getStatus() != null) {
+            if (dto.getStatus() == 1 && !Integer.valueOf(1).equals(post.getStatus())) {
+                post.setPublishedAt(LocalDateTime.now());
+            }
             post.setStatus(dto.getStatus());
         }
         postMapper.updateById(post);
+
+        if (dto.getCategoryIds() != null) {
+            replaceCategoriesForPost(post.getId(), newCategoryIds);
+        }
+        if (dto.getTagIds() != null) {
+            replaceTagsForPost(post.getId(), dto.getTagIds());
+        }
+        refreshCategoryPostCounts(mergeCategoryIds(oldCategoryIds, newCategoryIds));
     }
 
     /**
@@ -280,6 +373,7 @@ public class PostServiceImpl implements PostService {
         if (post == null) {
             throw new BusinessException(ResultCode.POST_NOT_FOUND);
         }
+        List<Long> categoryIds = loadCategoryIdsForPost(id);
 
         // 校验用户是否有权限删除
         Long currentUserId = SecurityUtil.getCurrentUserId();
@@ -291,6 +385,7 @@ public class PostServiceImpl implements PostService {
         // 软删除文章：将状态设置为 -1
         post.setStatus(-1);
         postMapper.updateById(post);
+        refreshCategoryPostCounts(categoryIds);
     }
 
     /**
@@ -305,6 +400,7 @@ public class PostServiceImpl implements PostService {
         if (post == null) {
             throw new BusinessException(ResultCode.POST_NOT_FOUND);
         }
+        List<Long> categoryIds = loadCategoryIdsForPost(id);
         // 校验用户是否有权限发布
         Long currentUserId = SecurityUtil.getCurrentUserId();
         if (!post.getUserId().equals(currentUserId)) {
@@ -314,8 +410,7 @@ public class PostServiceImpl implements PostService {
         post.setStatus(1);
         post.setPublishedAt(LocalDateTime.now());
         postMapper.updateById(post);
-
-
+        refreshCategoryPostCounts(categoryIds);
     }
     /**
      * 增加文章阅读量
@@ -324,6 +419,18 @@ public class PostServiceImpl implements PostService {
     @Override
     public void incrementViewCount(Long id) {
         postMapper.incrementViewCount(id);
+    }
+
+    private boolean canAccessUnpublishedPost(Post post) {
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        return post.getUserId().equals(currentUserId) || canManagePosts();
+    }
+
+    private boolean canManagePosts() {
+        return SecurityUtil.hasRole("ROLE_ADMIN")
+                || SecurityUtil.hasRole("ROLE_EDITOR")
+                || SecurityUtil.hasPermission("post:update")
+                || SecurityUtil.hasPermission("post:publish");
     }
 
 }

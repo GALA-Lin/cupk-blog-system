@@ -105,6 +105,7 @@ public class SecurityConfig {
                                 "/posts"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/posts", "/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
                         .requestMatchers("/comments", "/comments/**").permitAll()
                         .requestMatchers("/likes/comment/**", "/likes/comments/batch-check").permitAll()
 

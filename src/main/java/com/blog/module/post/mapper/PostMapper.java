@@ -22,7 +22,7 @@ public interface PostMapper extends BaseMapper<Post> {
      * 增加浏览量
      */
     @Update("UPDATE posts SET view_count = view_count + 1 WHERE id = #{postId}")
-    void incrementViewCount(Long id);
+    void incrementViewCount(@Param("postId") Long id);
 
     /**
      * 根据文章ID查询分类
