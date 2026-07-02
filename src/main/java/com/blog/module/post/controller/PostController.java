@@ -75,6 +75,24 @@ public class PostController {
         return Result.success(result);
     }
 
+    @GetMapping("/hot")
+    @Operation(summary = "获取热点文章", description = "获取按置顶、人工排序、热度排序后的发布文章")
+    public Result<PageResult<PostListVO>> getHotPosts(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) Long categoryId) {
+        return Result.success(postService.getHotPosts(page, size, categoryId));
+    }
+
+    @GetMapping("/recommendations")
+    @Operation(summary = "获取推荐文章", description = "获取管理员排序后的推荐文章")
+    public Result<PageResult<PostListVO>> getRecommendations(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) Long categoryId) {
+        return Result.success(postService.getHotPosts(page, size, categoryId));
+    }
+
     /**
      * 更新文章
      * @param id 文章ID

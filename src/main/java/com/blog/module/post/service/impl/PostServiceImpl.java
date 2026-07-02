@@ -2,7 +2,10 @@ package com.blog.module.post.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.blog.DTO.post.PostBatchSortDTO;
 import com.blog.DTO.post.PostCreateDTO;
+import com.blog.DTO.post.PostSortDTO;
+import com.blog.DTO.post.PostTopDTO;
 import com.blog.DTO.post.PostUpdateDTO;
 import com.blog.VO.post.CategoryVO;
 import com.blog.VO.post.PostDetailVO;
@@ -24,8 +27,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -65,6 +71,9 @@ public class PostServiceImpl implements PostService {
         post.setStatus(dto.getStatus());
         post.setContentType("MARKDOWN");
         post.setSlug(generateSlug(dto.getTitle()));// 从标题生成 slug（URL 友好型字符串 / URL 别名）
+        post.setIsTop(0);
+        post.setSortOrder(0);
+        post.setManualWeight(0);
 
         // 设置发布时间
         if (dto.getStatus() == 1){
@@ -283,28 +292,45 @@ public class PostServiceImpl implements PostService {
         } else if (status != null) {
             wrapper.eq(Post::getStatus, status);
         }
-        // 按照发布时间倒序排序
-        wrapper.orderByDesc(Post::getPublishedAt);
+        applyDefaultSort(wrapper);
         // 分页查询文章列表
         Page<Post> pageParam = new Page<>(page, size);
         Page<Post> pageResult = postMapper.selectPage(pageParam, wrapper);
 
         // 转换成 VO 并返回
         List<PostListVO> voList = pageResult.getRecords().stream()
-                .map(post -> {
-                    PostListVO vo = new PostListVO();
-                    // 复制基础属性
-                    BeanUtils.copyProperties(post, vo);
-                    // 加载并设置作者信息
-                    User author = userMapper.selectById(post.getUserId());
-                    if (author != null) {
-                        vo.setAuthorName(author.getNickname() != null ? author.getNickname() : author.getUsername());
-                        vo.setAuthorAvatar(author.getAvatarUrl());
-                    }
-                    return vo;
-                })
+                .map(this::toPostListVO)
                 .toList();
 
+        return PageResult.of(pageResult.getTotal(), pageResult.getSize(), pageResult.getCurrent(), voList);
+    }
+
+    @Override
+    public PageResult<PostListVO> getHotPosts(Integer page, Integer size, Long categoryId) {
+        LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Post::getStatus, 1);
+
+        if (categoryId != null) {
+            List<Long> categoryIds = getActiveCategoryAndDescendantIds(categoryId);
+            List<Long> postIds = postCategoryMapper.selectList(new LambdaQueryWrapper<PostCategory>()
+                            .in(PostCategory::getCategoryId, categoryIds))
+                    .stream()
+                    .map(PostCategory::getPostId)
+                    .filter(id -> id != null)
+                    .distinct()
+                    .toList();
+
+            if (postIds.isEmpty()) {
+                return PageResult.empty(page, size);
+            }
+            wrapper.in(Post::getId, postIds);
+        }
+
+        applyHotSort(wrapper);
+        Page<Post> pageResult = postMapper.selectPage(new Page<>(page, size), wrapper);
+        List<PostListVO> voList = pageResult.getRecords().stream()
+                .map(this::toPostListVO)
+                .toList();
         return PageResult.of(pageResult.getTotal(), pageResult.getSize(), pageResult.getCurrent(), voList);
     }
 
@@ -412,6 +438,49 @@ public class PostServiceImpl implements PostService {
         postMapper.updateById(post);
         refreshCategoryPostCounts(categoryIds);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePostTop(Long id, PostTopDTO dto) {
+        Post post = getPostOrThrow(id);
+        post.setIsTop(dto.getIsTop());
+        if (dto.getSortOrder() != null) {
+            post.setSortOrder(dto.getSortOrder());
+        }
+        postMapper.updateById(post);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePostSort(Long id, PostSortDTO dto) {
+        Post post = getPostOrThrow(id);
+        if (dto.getSortOrder() != null) {
+            post.setSortOrder(dto.getSortOrder());
+        }
+        if (dto.getManualWeight() != null) {
+            post.setManualWeight(dto.getManualWeight());
+        }
+        postMapper.updateById(post);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void batchUpdatePostSort(PostBatchSortDTO dto) {
+        for (PostBatchSortDTO.PostSortItemDTO item : dto.getPosts()) {
+            Post post = getPostOrThrow(item.getId());
+            if (item.getSortOrder() != null) {
+                post.setSortOrder(item.getSortOrder());
+            }
+            if (item.getManualWeight() != null) {
+                post.setManualWeight(item.getManualWeight());
+            }
+            if (item.getIsTop() != null) {
+                post.setIsTop(item.getIsTop());
+            }
+            postMapper.updateById(post);
+        }
+    }
+
     /**
      * 增加文章阅读量
      * @param id 文章ID
@@ -419,6 +488,89 @@ public class PostServiceImpl implements PostService {
     @Override
     public void incrementViewCount(Long id) {
         postMapper.incrementViewCount(id);
+    }
+
+    private Post getPostOrThrow(Long id) {
+        Post post = postMapper.selectById(id);
+        if (post == null) {
+            throw new BusinessException(ResultCode.POST_NOT_FOUND);
+        }
+        return post;
+    }
+
+    private PostListVO toPostListVO(Post post) {
+        PostListVO vo = new PostListVO();
+        BeanUtils.copyProperties(post, vo);
+        vo.setHotScore(calculateHotScore(post));
+        User author = userMapper.selectById(post.getUserId());
+        if (author != null) {
+            vo.setAuthorName(author.getNickname() != null ? author.getNickname() : author.getUsername());
+            vo.setAuthorAvatar(author.getAvatarUrl());
+        }
+        return vo;
+    }
+
+    private Double calculateHotScore(Post post) {
+        long viewCount = post.getViewCount() == null ? 0L : post.getViewCount();
+        int likeCount = post.getLikeCount() == null ? 0 : post.getLikeCount();
+        int favoriteCount = post.getFavoriteCount() == null ? 0 : post.getFavoriteCount();
+        int manualWeight = post.getManualWeight() == null ? 0 : post.getManualWeight();
+        int topBonus = Integer.valueOf(1).equals(post.getIsTop()) ? 1000 : 0;
+        return viewCount + likeCount * 5.0 + favoriteCount * 8.0 + manualWeight * 20.0 + topBonus;
+    }
+
+    private void applyDefaultSort(LambdaQueryWrapper<Post> wrapper) {
+        wrapper.orderByDesc(Post::getIsTop)
+                .orderByDesc(Post::getSortOrder)
+                .orderByDesc(Post::getPublishedAt);
+    }
+
+    private void applyHotSort(LambdaQueryWrapper<Post> wrapper) {
+        wrapper.orderByDesc(Post::getIsTop)
+                .orderByDesc(Post::getSortOrder)
+                .orderByDesc(Post::getManualWeight)
+                .orderByDesc(Post::getViewCount)
+                .orderByDesc(Post::getFavoriteCount)
+                .orderByDesc(Post::getLikeCount)
+                .orderByDesc(Post::getPublishedAt);
+    }
+
+    private List<Long> getActiveCategoryAndDescendantIds(Long categoryId) {
+        Category category = categoryMapper.selectById(categoryId);
+        if (category == null || !Integer.valueOf(1).equals(category.getStatus())) {
+            throw new BusinessException(ResultCode.RESOURCE_NOT_FOUND);
+        }
+
+        List<Category> categories = categoryMapper.selectList(new LambdaQueryWrapper<Category>()
+                .eq(Category::getStatus, 1));
+        Map<Long, List<Long>> childrenMap = new LinkedHashMap<>();
+        for (Category item : categories) {
+            if (item.getParentId() != null) {
+                childrenMap.computeIfAbsent(item.getParentId(), key -> new ArrayList<>()).add(item.getId());
+            }
+        }
+
+        List<Long> categoryIds = new ArrayList<>();
+        categoryIds.add(categoryId);
+        collectDescendantIds(categoryId, childrenMap, categoryIds, new HashSet<>());
+        return categoryIds;
+    }
+
+    private void collectDescendantIds(Long categoryId,
+                                      Map<Long, List<Long>> childrenMap,
+                                      List<Long> categoryIds,
+                                      Set<Long> visited) {
+        if (!visited.add(categoryId)) {
+            return;
+        }
+        List<Long> children = childrenMap.get(categoryId);
+        if (children == null) {
+            return;
+        }
+        for (Long childId : children) {
+            categoryIds.add(childId);
+            collectDescendantIds(childId, childrenMap, categoryIds, visited);
+        }
     }
 
     private boolean canAccessUnpublishedPost(Post post) {

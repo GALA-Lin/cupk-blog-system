@@ -1,6 +1,9 @@
 package com.blog.module.post.service;
 
 import com.blog.DTO.post.PostCreateDTO;
+import com.blog.DTO.post.PostBatchSortDTO;
+import com.blog.DTO.post.PostSortDTO;
+import com.blog.DTO.post.PostTopDTO;
 import com.blog.DTO.post.PostUpdateDTO;
 import com.blog.VO.post.PostDetailVO;
 import com.blog.VO.post.PostListVO;
@@ -35,6 +38,8 @@ public interface PostService {
      */
     PageResult<PostListVO> getPostList(Integer page, Integer size, Integer status);
 
+    PageResult<PostListVO> getHotPosts(Integer page, Integer size, Long categoryId);
+
     /**
      * 更新文章
      * @param dto 文章更新DTO
@@ -52,6 +57,12 @@ public interface PostService {
      * @param id 文章ID
      */
     void publishPost(Long id);
+
+    void updatePostTop(Long id, PostTopDTO dto);
+
+    void updatePostSort(Long id, PostSortDTO dto);
+
+    void batchUpdatePostSort(PostBatchSortDTO dto);
 
     /**
      * 浏览量自增

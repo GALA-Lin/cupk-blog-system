@@ -263,6 +263,7 @@ public class CategoryServiceImpl implements CategoryService {
     private PostListVO toPostListVO(Post post) {
         PostListVO vo = new PostListVO();
         BeanUtils.copyProperties(post, vo);
+        vo.setHotScore(calculateHotScore(post));
         User author = userMapper.selectById(post.getUserId());
         if (author != null) {
             vo.setAuthorName(author.getNickname() != null ? author.getNickname() : author.getUsername());
@@ -271,14 +272,28 @@ public class CategoryServiceImpl implements CategoryService {
         return vo;
     }
 
+    private Double calculateHotScore(Post post) {
+        long viewCount = post.getViewCount() == null ? 0L : post.getViewCount();
+        int likeCount = post.getLikeCount() == null ? 0 : post.getLikeCount();
+        int favoriteCount = post.getFavoriteCount() == null ? 0 : post.getFavoriteCount();
+        int manualWeight = post.getManualWeight() == null ? 0 : post.getManualWeight();
+        int topBonus = Integer.valueOf(1).equals(post.getIsTop()) ? 1000 : 0;
+        return viewCount + likeCount * 5.0 + favoriteCount * 8.0 + manualWeight * 20.0 + topBonus;
+    }
+
     private void applyPostSort(LambdaQueryWrapper<Post> wrapper, String sort) {
         if ("hot".equalsIgnoreCase(sort)) {
             wrapper.orderByDesc(Post::getIsTop)
+                    .orderByDesc(Post::getSortOrder)
+                    .orderByDesc(Post::getManualWeight)
                     .orderByDesc(Post::getViewCount)
+                    .orderByDesc(Post::getFavoriteCount)
+                    .orderByDesc(Post::getLikeCount)
                     .orderByDesc(Post::getPublishedAt);
             return;
         }
         wrapper.orderByDesc(Post::getIsTop)
+                .orderByDesc(Post::getSortOrder)
                 .orderByDesc(Post::getPublishedAt);
     }
 

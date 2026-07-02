@@ -37,6 +37,10 @@ public class Post extends BaseEntity {
 
     private Integer isTop; // 0=normal, 1=pinned
 
+    private Integer sortOrder;
+
+    private Integer manualWeight;
+
     private Integer isOriginal; // 1=original, 0=reprinted
 
     private String originalUrl;

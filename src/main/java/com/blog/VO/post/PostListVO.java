@@ -22,8 +22,13 @@ public class PostListVO {
     private String authorAvatar;
 
     private Integer status;
+    private Integer isTop;
+    private Integer sortOrder;
+    private Integer manualWeight;
+    private Double hotScore;
     private Long viewCount;
     private Integer likeCount;
+    private Integer favoriteCount;
     private Integer commentCount;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
