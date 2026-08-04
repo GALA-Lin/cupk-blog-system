@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="中国石油大学（北京）克拉玛依校区大学生社会实践宣传平台，展示政务动态、通知公告、政策解读、实践成果等信息。">
+  <title>大学生社会实践宣传平台</title>
+  <link rel="icon" type="image/svg+xml" href="img/logo.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <span id="topbar-date"></span>
+      <div>
+        <a href="javascript:void(0)" onclick="this.href='javascript:void(0)'">设为首页</a>
+        <span class="sep">|</span>
+        <a href="javascript:void(0)">加入收藏</a>
+        <span class="sep">|</span>
+        <a href="#site-footer">网站地图</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-banner">
+    <div class="container">
+      <div class="logo"><img src="img/logo.svg" alt="平台标识"></div>
+      <div class="site-title-box">
+        <h1 class="site-title" id="site-title">大学生社会实践宣传平台</h1>
+        <p class="site-subtitle" id="site-subtitle">中国石油大学（北京）克拉玛依校区 · 社会实践专题网站</p>
+      </div>
+      <div class="banner-actions">
+        <a href="category.html" id="link-all">全部资讯</a>
+        <a href="#site-footer">联系方式</a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="main-nav">
+    <div class="container">
+      <ul id="main-nav-ul"></ul>
+    </div>
+  </nav>
+
+  <main class="container">
+
+    <div class="hero-wrap">
+      <div class="carousel" id="carousel" aria-label="焦点轮播图">
+        <div class="carousel-slides" id="carousel-slides"></div>
+        <button class="arrow prev" id="carousel-prev" aria-label="上一张">‹</button>
+        <button class="arrow next" id="carousel-next" aria-label="下一张">›</button>
+        <div class="dots" id="carousel-dots"></div>
+      </div>
+
+      <aside class="notice-panel">
+        <div class="panel-head">
+          <span class="panel-title">📢 通知公告</span>
+          <a class="more" id="notice-more" href="category.html">更多 ›</a>
+        </div>
+        <ul class="notice-list" id="notice-list"></ul>
+        <div class="quick-links">
+          <h4>快捷服务</h4>
+          <div class="links" id="quick-links"></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="home-sections" id="home-sections"></section>
+
+    <div class="home-bottom">
+      <div class="hot-card">
+        <div class="card-title">热点关注</div>
+        <ul class="hot-list" id="hot-list"></ul>
+      </div>
+      <div class="links-card">
+        <div class="card-title">相关链接</div>
+        <div class="friend-links">
+          <a href="https://www.cupk.edu.cn/" target="_blank" rel="noopener">学校官网</a>
+          <a href="https://www.gov.cn/" target="_blank" rel="noopener">中国政府网</a>
+          <a href="https://www.xinjiang.gov.cn/" target="_blank" rel="noopener">新疆政府网</a>
+          <a href="https://www.kelamayi.gov.cn/" target="_blank" rel="noopener">克拉玛依政府网</a>
+          <a href="https://www.moe.gov.cn/" target="_blank" rel="noopener">教育部</a>
+          <a href="https://www.myouth.cn/" target="_blank" rel="noopener">三下乡官网</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="site-footer" id="site-footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="index.html">网站首页</a>
+        <a href="category.html">全部资讯</a>
+        <a href="admin.html">后台管理</a>
+        <a href="https://www.cupk.edu.cn/" target="_blank" rel="noopener">学校官网</a>
+        <a href="javascript:void(0)">平台简介</a>
+        <a href="javascript:void(0)">使用帮助</a>
+        <a href="javascript:void(0)">意见反馈</a>
+      </div>
+      <div class="copyright">
+        主办单位：<span id="footer-org">中国石油大学（北京）克拉玛依校区</span> 社会实践工作办公室<br>
+        地址：新疆克拉玛依市克拉玛依区安定路355号 &nbsp;|&nbsp; 联系电话：0990-0000000 &nbsp;|&nbsp; 邮箱：sjshsj@cupk.edu.cn<br>
+        版权所有 © <span id="footer-year"></span> 大学生社会实践宣传平台 &nbsp;|&nbsp; 新ICP备XXXXXXXX号
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/index.js"></script>
+</body>
+</html>

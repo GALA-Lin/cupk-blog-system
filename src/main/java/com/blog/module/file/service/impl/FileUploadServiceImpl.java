@@ -58,8 +58,30 @@ public class FileUploadServiceImpl implements FileUploadService{
             "text/markdown"
     );
 
-    // 最大文件大小：10MB
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
+    // 允许的视频类型（政务宣传平台支持视频附件）
+    private static final List<String> ALLOWED_VIDEO_TYPES = Arrays.asList(
+            "video/mp4",
+            "video/webm",
+            "video/quicktime",
+            "video/x-msvideo",
+            "video/x-matroska",
+            "video/ogg"
+    );
+
+    // 允许的音频类型
+    private static final List<String> ALLOWED_AUDIO_TYPES = Arrays.asList(
+            "audio/mpeg",
+            "audio/mp3",
+            "audio/wav",
+            "audio/x-wav",
+            "audio/ogg",
+            "audio/aac",
+            "audio/mp4",
+            "audio/x-m4a"
+    );
+
+    // 最大文件大小：200MB（与 FileUploadConfig.multipartConfigElement 保持一致）
+    private static final long MAX_FILE_SIZE = 200L * 1024 * 1024;
     private final MinioService minioService;
 
     @Override
@@ -313,7 +335,9 @@ public class FileUploadServiceImpl implements FileUploadService{
     private boolean isAllowedType(String contentType, String category) {
         if (category == null) {
             return ALLOWED_IMAGE_TYPES.contains(contentType) ||
-                    ALLOWED_DOCUMENT_TYPES.contains(contentType);
+                    ALLOWED_DOCUMENT_TYPES.contains(contentType) ||
+                    ALLOWED_VIDEO_TYPES.contains(contentType) ||
+                    ALLOWED_AUDIO_TYPES.contains(contentType);
         }
 
         return switch (category) {

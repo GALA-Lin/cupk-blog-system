@@ -189,6 +189,30 @@ mvn spring-boot:run
 http://localhost:8080/api/doc.html
 ```
 
+### 🏛️ 政务风格前端
+
+前端为纯静态页面，由 Spring Boot 直接托管，无需额外启动 Node 服务：
+
+```text
+src/main/resources/static/
+├── index.html        # 首页：轮播图 + 通知公告 + 分栏目 + 热点关注
+├── category.html     # 栏目列表页
+└── post.html         # 文章详情页（Markdown 渲染）
+```
+
+启动后端后访问 `http://localhost:8080/api/` 即可。
+后端未启动时，URL 加 `?demo=1`（如 `index.html?demo=1`）可使用内置演示数据预览。
+详细说明见 [docs/frontend.md](docs/frontend.md)。
+
+首次使用建议依次导入：
+
+```bash
+mysql -u root -p blog_system < Sql/government_phase2_categories.sql
+mysql -u root -p blog_system < Sql/government_phase3_hot_posts.sql
+mysql -u root -p blog_system < Sql/government_phase5_admin_permissions.sql
+mysql -u root -p blog_system < Sql/government_frontend_seed_posts.sql
+```
+
 ## 📖 API 文档
 
 启动后访问 Knife4j 文档：`http://localhost:8080/api/doc.html`

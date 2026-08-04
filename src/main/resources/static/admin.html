@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>后台管理 - 社会实践宣传平台</title>
+  <link rel="icon" type="image/svg+xml" href="img/logo.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+
+  <header class="admin-header">
+    <div class="container">
+      <div class="brand">
+        <img src="img/logo.svg" alt="logo">
+        <span>社会实践宣传平台 · 后台管理</span>
+      </div>
+      <div class="user-box">
+        <span id="user-name" class="hidden"></span>
+        <a href="index.html">返回门户</a>
+        <a href="javascript:void(0)" id="logout-btn" class="hidden">退出登录</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+
+    <!-- 登录 -->
+    <section id="view-login">
+      <div class="login-wrap">
+        <div class="login-card">
+          <h2>管理员登录</h2>
+          <p class="login-tip">请使用具有管理权限的账号登录</p>
+          <div class="field">
+            <label for="login-username">用户名</label>
+            <input id="login-username" type="text" autocomplete="username" placeholder="请输入用户名">
+          </div>
+          <div class="field">
+            <label for="login-password">密码</label>
+            <input id="login-password" type="password" autocomplete="current-password" placeholder="请输入密码">
+          </div>
+          <button class="btn btn-primary" id="login-btn" style="width:100%;height:40px">登 录</button>
+          <div class="form-msg" id="login-msg"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 管理主界面 -->
+    <section id="view-dashboard" class="hidden">
+      <div class="admin-panel">
+        <div class="admin-tabs">
+          <div class="tab active" data-panel="posts">文章管理</div>
+          <div class="tab" data-panel="categories">栏目管理</div>
+        </div>
+
+        <!-- 文章管理 -->
+        <div id="panel-posts">
+          <div class="panel-head">
+            <div class="filters" id="post-filters">
+              <button class="filter-btn active" data-status="">全部</button>
+              <button class="filter-btn" data-status="0">草稿</button>
+              <button class="filter-btn" data-status="2">审核中</button>
+              <button class="filter-btn" data-status="1">已发布</button>
+            </div>
+            <button class="btn btn-primary" id="new-post-btn">+ 新建文章</button>
+          </div>
+          <div class="table-wrap">
+            <table class="admin-table" id="post-table">
+              <thead>
+                <tr>
+                  <th style="width:56px">ID</th>
+                  <th>标题</th>
+                  <th>作者</th>
+                  <th>状态</th>
+                  <th>置顶</th>
+                  <th style="width:170px">排序 / 权重</th>
+                  <th>浏览量</th>
+                  <th>发布时间</th>
+                  <th style="width:230px">操作</th>
+                </tr>
+              </thead>
+              <tbody id="post-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pager-row" id="post-pager"></div>
+        </div>
+
+        <!-- 栏目管理 -->
+        <div id="panel-categories" class="hidden">
+          <div class="cat-form" id="cat-form">
+            <div class="form-grid">
+              <div class="form-item">
+                <label>栏目名称 <span class="req">*</span></label>
+                <input id="cat-name" type="text" placeholder="如：政务动态">
+              </div>
+              <div class="form-item">
+                <label>栏目标识 slug <span class="req">*</span></label>
+                <input id="cat-slug" type="text" placeholder="如：government-news">
+              </div>
+              <div class="form-item">
+                <label>父栏目</label>
+                <select id="cat-parent"><option value="">（无，一级栏目）</option></select>
+              </div>
+              <div class="form-item">
+                <label>排序值（越小越靠前）</label>
+                <input id="cat-sort" type="number" value="10">
+              </div>
+              <div class="form-item full">
+                <label>栏目描述</label>
+                <input id="cat-desc" type="text" placeholder="栏目说明，将显示在首页栏目块">
+              </div>
+              <div class="form-item">
+                <label>图标（Emoji）</label>
+                <input id="cat-icon" type="text" placeholder="如：🏛️">
+              </div>
+              <div class="form-item">
+                <label>状态</label>
+                <select id="cat-status">
+                  <option value="1">启用</option>
+                  <option value="0">禁用</option>
+                </select>
+              </div>
+              <div class="form-item full">
+                <button class="btn btn-primary" id="cat-save-btn">保存栏目</button>
+                <button class="btn btn-secondary" id="cat-cancel-btn">取消</button>
+                <span class="form-msg" id="cat-msg" style="display:inline;margin-left:12px"></span>
+              </div>
+            </div>
+          </div>
+          <div class="panel-head">
+            <button class="btn btn-primary" id="new-cat-btn">+ 新建栏目</button>
+            <button class="btn btn-secondary" id="cat-sort-save-btn">保存排序</button>
+          </div>
+          <div class="table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>栏目名称</th>
+                  <th>标识 slug</th>
+                  <th>描述</th>
+                  <th>文章数</th>
+                  <th>排序</th>
+                  <th>状态</th>
+                  <th style="width:150px">操作</th>
+                </tr>
+              </thead>
+              <tbody id="cat-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 文章编辑器 -->
+    <section id="view-editor" class="hidden">
+      <div class="editor-panel">
+        <div class="editor-head">
+          <h2 id="editor-title">新建文章</h2>
+          <button class="btn btn-secondary" id="editor-back-btn">← 返回列表</button>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-item full">
+            <label>标题 <span class="req">*</span></label>
+            <input id="post-title" type="text" maxlength="200" placeholder="请输入文章标题">
+          </div>
+          <div class="form-item full">
+            <label>摘要</label>
+            <textarea id="post-summary" rows="2" maxlength="500" placeholder="一句话概述，将显示在列表和轮播"></textarea>
+          </div>
+          <div class="form-item full">
+            <label>封面图</label>
+            <div class="cover-row">
+              <img class="cover-preview" id="cover-preview" src="img/default-cover.svg" alt="封面预览">
+              <input id="post-cover" type="text" placeholder="封面图片 URL（上传后自动填入）">
+              <input type="file" id="cover-file" accept="image/*" class="hidden">
+              <button class="btn btn-secondary" id="cover-upload-btn">上传封面</button>
+            </div>
+            <p class="hint">不上传时前端自动使用默认封面；上传后图片存储于 MinIO。</p>
+          </div>
+          <div class="form-item full">
+            <label>所属栏目</label>
+            <div class="cat-checkboxes" id="cat-checkboxes"></div>
+          </div>
+          <div class="form-item full">
+            <label>状态</label>
+            <div class="status-radios">
+              <label><input type="radio" name="post-status" value="0" checked> 存为草稿</label>
+              <label><input type="radio" name="post-status" value="1"> 直接发布</label>
+            </div>
+          </div>
+          <div class="form-item full">
+            <label>正文内容（Markdown） <span class="req">*</span></label>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span class="markdown-tip">支持标题、列表、表格、图片、引用、代码块等 Markdown 语法；在线播放请使用 MP4/WebM，FLV/MOV/AVI 会作为附件下载</span>
+              <span style="display:flex;gap:8px">
+                <button class="btn btn-secondary btn-sm" id="content-file-btn" type="button">上传图片/附件</button>
+                <button class="btn btn-secondary btn-sm" id="preview-toggle-btn" type="button">预览正文</button>
+              </span>
+            </div>
+            <input type="file" id="content-file-input" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.md,.zip" class="hidden">
+            <textarea id="post-content" rows="18" placeholder="在此输入 Markdown 正文..."></textarea>
+            <div id="content-preview" class="article-content hidden"></div>
+          </div>
+        </div>
+
+        <div class="editor-actions">
+          <button class="btn btn-secondary" id="save-draft-btn">保存草稿</button>
+          <button class="btn btn-success" id="save-publish-btn">保存并发布</button>
+        </div>
+        <div class="form-msg" id="editor-msg"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/marked.min.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

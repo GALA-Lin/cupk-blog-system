@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章详情</title>
+  <link rel="icon" type="image/svg+xml" href="img/logo.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <span id="topbar-date"></span>
+      <div>
+        <a href="index.html">网站首页</a>
+        <span class="sep">|</span>
+        <a href="category.html">全部资讯</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-banner">
+    <div class="container">
+      <div class="logo"><img src="img/logo.svg" alt="平台标识"></div>
+      <div class="site-title-box">
+        <h1 class="site-title">大学生社会实践宣传平台</h1>
+        <p class="site-subtitle">中国石油大学（北京）克拉玛依校区 · 社会实践专题网站</p>
+      </div>
+      <div class="banner-actions">
+        <a href="index.html">返回首页</a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="main-nav">
+    <div class="container">
+      <ul id="main-nav-ul"></ul>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="article-wrap">
+      <div class="crumb">
+        <a href="index.html">首页</a>
+        <span> › </span>
+        <a href="category.html">全部资讯</a>
+        <span id="crumb-cat"></span>
+        <span> › </span>
+        <span class="cur">正文</span>
+      </div>
+
+      <article class="article" id="article">
+        <div class="state"><span class="loading-spinner"></span>内容加载中…</div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="index.html">网站首页</a>
+        <a href="category.html">全部资讯</a>
+        <a href="admin.html">后台管理</a>
+      </div>
+      <div class="copyright">
+        主办单位：中国石油大学（北京）克拉玛依校区 社会实践工作办公室<br>
+        版权所有 © <span id="footer-year"></span> 大学生社会实践宣传平台 &nbsp;|&nbsp; 新ICP备XXXXXXXX号
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/marked.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/post.js"></script>
+</body>
+</html>

@@ -24,11 +24,11 @@ public class FileUploadConfig {
     public MultipartConfigElement multipartConfigElement() {
         MultipartConfigFactory factory = new MultipartConfigFactory();
 
-        // 单个文件最大 10MB
-        factory.setMaxFileSize(DataSize.ofMegabytes(10));
+        // 单个文件最大 200MB（支持视频等大附件）
+        factory.setMaxFileSize(DataSize.ofMegabytes(200));
 
-        // 总上传大小最大 20MB
-        factory.setMaxRequestSize(DataSize.ofMegabytes(20));
+        // 总上传大小最大 250MB
+        factory.setMaxRequestSize(DataSize.ofMegabytes(250));
 
         return factory.createMultipartConfig();
     }

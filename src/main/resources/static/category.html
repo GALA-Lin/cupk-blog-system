@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="栏目资讯列表">
+  <title>栏目资讯</title>
+  <link rel="icon" type="image/svg+xml" href="img/logo.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="container">
+      <span id="topbar-date"></span>
+      <div>
+        <a href="javascript:void(0)">设为首页</a>
+        <span class="sep">|</span>
+        <a href="javascript:void(0)">加入收藏</a>
+        <span class="sep">|</span>
+        <a href="index.html#site-footer">网站地图</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-banner">
+    <div class="container">
+      <div class="logo"><img src="img/logo.svg" alt="平台标识"></div>
+      <div class="site-title-box">
+        <h1 class="site-title">大学生社会实践宣传平台</h1>
+        <p class="site-subtitle">中国石油大学（北京）克拉玛依校区 · 社会实践专题网站</p>
+      </div>
+      <div class="banner-actions">
+        <a href="index.html">返回首页</a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="main-nav">
+    <div class="container">
+      <ul id="main-nav-ul"></ul>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="crumb">
+      <a href="index.html">首页</a>
+      <span> › </span>
+      <span class="cur" id="crumb-cur">栏目资讯</span>
+    </div>
+
+    <div class="layout">
+      <div class="main-box">
+        <div class="sort-tabs" id="sort-tabs">
+          <button class="tab active" data-sort="latest">最新发布</button>
+          <button class="tab" data-sort="hot">热点排行</button>
+        </div>
+        <ul class="post-list" id="post-list"></ul>
+        <div class="pager" id="pager"></div>
+      </div>
+
+      <aside>
+        <div class="side-box">
+          <div class="side-title">栏目导航</div>
+          <div class="side-cat" id="side-cat"></div>
+        </div>
+        <div class="side-box">
+          <div class="side-title">热点排行</div>
+          <ul class="side-hot" id="side-hot"></ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="index.html">网站首页</a>
+        <a href="category.html">全部资讯</a>
+        <a href="admin.html">后台管理</a>
+        <a href="https://www.cupk.edu.cn/" target="_blank" rel="noopener">学校官网</a>
+      </div>
+      <div class="copyright">
+        主办单位：中国石油大学（北京）克拉玛依校区 社会实践工作办公室<br>
+        版权所有 © <span id="footer-year"></span> 大学生社会实践宣传平台 &nbsp;|&nbsp; 新ICP备XXXXXXXX号
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/mock-data.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/category.js"></script>
+</body>
+</html>

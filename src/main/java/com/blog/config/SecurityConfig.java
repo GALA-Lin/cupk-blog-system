@@ -104,6 +104,19 @@ public class SecurityConfig {
                                 "/druid/**",
                                 "/posts"
                         ).permitAll()
+                        // 政务风格前端静态资源（index/category/post 页面及样式脚本图片）
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/category.html",
+                                "/post.html",
+                                "/admin.html",
+                                "/css/**",
+                                "/js/**",
+                                "/img/**",
+                                "/static/**",
+                                "/favicon.ico"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/posts", "/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
                         .requestMatchers("/comments", "/comments/**").permitAll()

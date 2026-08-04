@@ -35,3 +35,4 @@ build/
 /logs
 src/main/resources/static/favicon.ico
 src/main/resources/application-prod.yml
+docs/deploy.md
