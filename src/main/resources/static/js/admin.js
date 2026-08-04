@@ -416,9 +416,9 @@ async function insertContentFile(file) {
     const name = data.originalName || file.name || "附件";
     const alt = name.replace(/\.[^.]+$/, "");
     const ext = (name.split(".").pop() || "").toLowerCase();
-    const playableVideo = ["mp4", "webm", "ogg", "m4v"].includes(ext);
+    const playableVideo = ["flv","mp4", "webm", "ogg", "m4v"].includes(ext);
     const playableAudio = ["mp3", "wav", "aac", "ogg", "m4a", "flac"].includes(ext) || mime.indexOf("audio/") === 0;
-    const unplayableVideo = mime.indexOf("video/") === 0 || ["flv", "mov", "avi", "mkv", "wmv", "rmvb"].includes(ext);
+    const unplayableVideo = mime.indexOf("video/") === 0 || [ "mov", "avi", "mkv", "wmv", "rmvb"].includes(ext);
     let markdown;
     if (mime.indexOf("image/") === 0) {
       markdown = "![图片：" + alt + "](" + url + ")\n";
